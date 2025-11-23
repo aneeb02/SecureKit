@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pyzbar
+opencv-python-headless
+tldextract
+joblib
+numpy
+pandas
+scikit-learn
