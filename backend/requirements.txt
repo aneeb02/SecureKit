@@ -1,9 +1,12 @@
 fastapi
 uvicorn
 pyzbar
-opencv-python-headless
 tldextract
 joblib
 numpy
 pandas
 scikit-learn
+cryptography>=41.0.0
+Pillow
+jpegio
+stepic
