@@ -158,6 +158,48 @@ class PixelVault:
                 pass
         return None
     
+
+    def _create_file_metadata(self, encrypted: bool, filename: str, file_size: int) -> str:
+        """
+        PVF:1.0:E|filename|filesize|
+        """
+        flag = "E" if encrypted else "P"
+        base = os.path.basename(filename)
+        return f"PVF:{self.version}:{flag}|{base}|{file_size}|"
+
+
+    def _parse_file_metadata(self, data_str: str):
+        """
+        Parse:
+            PVF:1.0:E|filename|filesize|<rest>
+        """
+        if data_str.startswith("PVF:"):
+            try:
+                parts = data_str.split('|', 3)
+                # parts = ["PVF:1.0:E", "filename", "filesize", "data..."]
+
+                header = parts[0]
+                filename = parts[1]
+                file_size = int(parts[2])
+                rest = parts[3]
+
+                encrypted = header.split(':')[2] == "E"
+
+                return {
+                    "encrypted": encrypted,
+                    "filename": filename,
+                    "filesize": file_size,
+                    "data_str": rest
+                }
+
+            except:
+                return None
+
+        return None
+
+     
+
+    
     # ==================== Core LSB Methods ====================
     
     def encode_message(self, image_path, message, output_path, password=None):
@@ -229,7 +271,173 @@ class PixelVault:
         except Exception as e:
             print(f"Error encoding message: {e}")
             return False
-    
+        
+    def encode_file(self, image_path, file_path, output_path, password=None):
+        """
+        Encode a whole file (e.g., image, pdf, etc.) into an image.
+        """
+        try:
+            # 1) Read file bytes
+            with open(file_path, "rb") as f:
+                file_bytes = f.read()
+            file_size = len(file_bytes) 
+
+            # 2) Encrypt if password given
+            data = file_bytes
+            if password:
+                data = self._encrypt(data, password)
+                print("File encrypted with AES-256")
+
+            # 3) Build metadata + payload string (latin1-safe)
+            metadata = self._create_file_metadata(encrypted=bool(password),
+                                                  filename=file_path,file_size=file_size)
+            # Map raw bytes 0–255 to unicode using latin1 (lossless)
+            data_str = data.decode("latin1")
+            full_message = metadata + data_str + self.delimiter
+
+            # 4) Convert to binary (reuse existing text_to_binary)
+            binary_message = self.text_to_binary(full_message)
+
+            # 5) Load cover image
+            img = Image.open(image_path)
+            img = img.convert("RGB")
+            img_array = np.array(img)
+
+            # 6) Capacity check
+            max_bits = img_array.shape[0] * img_array.shape[1] * 3
+            required_bits = len(binary_message)
+            if required_bits > max_bits:
+                print("Error: File too large for this image!")
+                print(f"Image capacity: {max_bits} bits, need: {required_bits} bits")
+                return False
+
+            # 7) Embed bits in LSBs (same as encode_message)
+            flat_img = img_array.flatten()
+            for i in range(len(binary_message)):
+                flat_img[i] = (flat_img[i] & 0xFE) | int(binary_message[i])
+
+            encoded_array = flat_img.reshape(img_array.shape)
+
+            # 8) Save stego image
+            encoded_img = Image.fromarray(encoded_array.astype("uint8"))
+            encoded_img.save(output_path, "PNG")
+
+            print(f"✓ File successfully encoded into image!")
+            print(f"✓ Cover image: {image_path}")
+            print(f"✓ Hidden file: {file_path}")
+            print(f"✓ Output image: {output_path}")
+            return True
+
+        except FileNotFoundError:
+            print(f"Error: File '{file_path}' or image '{image_path}' not found!")
+            return False
+        except Exception as e:
+            print(f"Error encoding file: {e}")
+            return False
+    def estimate_bits_for_file(self, file_path, password=None):
+        """
+        Build the exact binary payload for a file (with metadata + delimiter)
+        and return how many bits it will need.
+        """
+        with open(file_path, "rb") as f:
+            file_bytes = f.read()
+
+        file_size = len(file_bytes)
+        data = file_bytes
+
+        if password:
+            data = self._encrypt(data, password)
+
+        # same metadata format you already use in encode_file
+        metadata = self._create_file_metadata(
+            encrypted=bool(password),
+            filename=file_path,
+            file_size=file_size,
+        )
+
+        data_str = data.decode("latin1")
+        full_message = metadata + data_str + self.delimiter
+
+        binary_message = self.text_to_binary(full_message)
+        return len(binary_message)  # bits
+
+    def get_image_capacity_bits(self, image_path):
+        """
+        Return how many bits this image can hold with 1 LSB per channel.
+        """
+        img = Image.open(image_path)
+        img = img.convert("RGB")
+        img_array = np.array(img)
+        return img_array.shape[0] * img_array.shape[1] * 3
+
+
+    def decode_file(self, image_path, password=None, output_dir="."):
+        """
+        Decode a hidden file from an image and save it to disk.
+        Returns path to recovered file or None.
+        """
+        try:
+            # 1) Load image & extract all LSBs (same as decode_message)
+            img = Image.open(image_path)
+            img = img.convert("RGB")
+            img_array = np.array(img)
+            flat_img = img_array.flatten()
+
+            binary_message = ""
+            for pixel_value in flat_img:
+                binary_message += str(pixel_value & 1)
+
+            # 2) Convert binary → text (latin1-safe container)
+            decoded_str = ""
+            for i in range(0, len(binary_message), 8):
+                byte = binary_message[i:i+8]
+                if len(byte) == 8:
+                    decoded_str += chr(int(byte, 2))
+                    if decoded_str.endswith(self.delimiter):
+                        decoded_str = decoded_str[:-len(self.delimiter)]
+                        break
+
+            # 3) Parse file metadata
+            meta = self._parse_file_metadata(decoded_str)
+            if not meta:
+                print("No PVF file metadata found (maybe this image has text-mode payload).")
+                return None
+
+            filename = meta["filename"]
+            is_encrypted = meta["encrypted"]
+            data_str = meta["data_str"]
+
+            # 4) Recover raw bytes from latin1
+            data_bytes = data_str.encode("latin1")
+
+            # 5) Decrypt if needed
+            if is_encrypted:
+                if password is None:
+                    print("Error: File is encrypted. Password required!")
+                    return None
+                try:
+                    data_bytes = self._decrypt(data_bytes, password)
+                    print("File decrypted successfully")
+                except Exception:
+                    print("Decryption failed: wrong password or corrupted data")
+                    return None
+
+            # 6) Save file
+            os.makedirs(output_dir, exist_ok=True)
+            out_path = os.path.join(output_dir, filename)
+            with open(out_path, "wb") as f:
+                f.write(data_bytes)
+
+            print(f"File recovered and saved to: {out_path}")
+            return out_path
+
+        except FileNotFoundError:
+            print(f"Error: Image file '{image_path}' not found!")
+            return None
+        except Exception as e:
+            print(f"Error decoding file: {e}")
+            return None
+
     def decode_message(self, image_path, password=None):
         """
         Decode a hidden message from an image with optional decryption
@@ -278,7 +486,7 @@ class PixelVault:
                             
                             if is_encrypted:
                                 if password is None:
-                                    print("❌ Error: This message is encrypted. Password required!")
+                                    print("Error: This message is encrypted. Password required!")
                                     return None
                                 
                                 try:
@@ -286,9 +494,9 @@ class PixelVault:
                                     encrypted_bytes = message_data.encode('latin1')
                                     decrypted_bytes = self._decrypt(encrypted_bytes, password)
                                     message = decrypted_bytes.decode('utf-8')
-                                    print(f"🔓 Message decrypted successfully")
+                                    print(f"Message decrypted successfully")
                                 except Exception as e:
-                                    print(f"❌ Decryption failed: Wrong password or corrupted data")
+                                    print(f"Decryption failed: Wrong password or corrupted data")
                                     return None
                             else:
                                 # Plain text message
@@ -413,7 +621,7 @@ def main():
                 print(f"✓ Approximately {capacity // 100} average sentences")
             
         elif choice == '4':
-            print("\nExiting PixelVault. Stay secure! 🔒")
+            print("\nExiting PixelVault.")
             break
             
         else:
