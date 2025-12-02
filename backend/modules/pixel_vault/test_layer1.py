@@ -39,9 +39,9 @@ def test_basic_encoding():
         decoded = vault.decode_message(output)
         
         if decoded == message:
-            print("✅ TEST PASSED: Message encoded and decoded successfully!")
+            print(" TEST PASSED: Message encoded and decoded successfully!")
         else:
-            print("❌ TEST FAILED: Decoded message doesn't match!")
+            print(" TEST FAILED: Decoded message doesn't match!")
             print(f"Expected: {message}")
             print(f"Got: {decoded}")
     
@@ -58,7 +58,7 @@ def test_password_encoding():
     
     vault = PixelVault()
     img_path = create_test_image()
-    message = "This is a secret message! 🔐"
+    message = "This is a secret message! "
     password = "SuperSecret123"
     output = "test_encoded_encrypted.png"
     
@@ -70,9 +70,9 @@ def test_password_encoding():
         decoded = vault.decode_message(output, password=password)
         
         if decoded == message:
-            print("✅ TEST PASSED: Encrypted message decoded successfully!")
+            print(" TEST PASSED: Encrypted message decoded successfully!")
         else:
-            print("❌ TEST FAILED: Decoded message doesn't match!")
+            print(" TEST FAILED: Decoded message doesn't match!")
     
     # Cleanup
     os.remove(img_path)
@@ -100,9 +100,9 @@ def test_wrong_password():
     decoded = vault.decode_message(output, password=wrong_password)
     
     if decoded is None:
-        print("✅ TEST PASSED: Wrong password correctly rejected!")
+        print(" TEST PASSED: Wrong password correctly rejected!")
     else:
-        print("❌ TEST FAILED: Wrong password was accepted!")
+        print(" TEST FAILED: Wrong password was accepted!")
     
     # Cleanup
     os.remove(img_path)
@@ -129,9 +129,9 @@ def test_no_password_on_encrypted():
     decoded = vault.decode_message(output)
     
     if decoded is None:
-        print("✅ TEST PASSED: Missing password correctly detected!")
+        print(" TEST PASSED: Missing password correctly detected!")
     else:
-        print("❌ TEST FAILED: Encrypted message decoded without password!")
+        print(" TEST FAILED: Encrypted message decoded without password!")
     
     # Cleanup
     os.remove(img_path)
@@ -150,10 +150,10 @@ if __name__ == "__main__":
         test_no_password_on_encrypted()
         
         print("\n" + "="*60)
-        print("🎉 ALL TESTS COMPLETED!")
+        print(" ALL TESTS COMPLETED!")
         print("="*60)
         
     except Exception as e:
-        print(f"\n❌ ERROR: {e}")
+        print(f"\n ERROR: {e}")
         import traceback
         traceback.print_exc()

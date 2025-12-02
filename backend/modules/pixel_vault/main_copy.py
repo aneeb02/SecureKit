@@ -227,7 +227,7 @@ class PixelVault:
             # Encrypt if password provided
             if password:
                 data = self._encrypt(data, password)
-                print(f"🔐 Message encrypted with AES-256")
+                print(f" Message encrypted with AES-256")
             
             # Add metadata header
             metadata = self._create_metadata(encrypted=bool(password))

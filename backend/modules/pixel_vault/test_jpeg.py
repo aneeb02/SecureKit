@@ -24,7 +24,7 @@ def create_test_jpeg(filename="test_jpeg.jpg", size=(200, 200), quality=90):
     img_array = np.random.randint(0, 256, (size[1], size[0], 3), dtype=np.uint8)
     img = Image.fromarray(img_array)
     img.save(filename, "JPEG", quality=quality)
-    print(f"✓ Created test JPEG: {filename}")
+    print(f" Created test JPEG: {filename}")
     return filename
 
 
@@ -35,7 +35,7 @@ def test_jpeg_capacity():
     print("="*60)
     
     if not JPEGIO_AVAILABLE:
-        print("⚠️  SKIPPED: jpegio not available")
+        print("  SKIPPED: jpegio not available")
         return False
     
     vault = JPEGVault()
@@ -44,16 +44,16 @@ def test_jpeg_capacity():
     capacity = vault.get_capacity(jpeg_path)
     
     if 'error' not in capacity:
-        print(f"✓ Image size: {capacity['image_size']}")
-        print(f"✓ Total capacity: {capacity['total_bytes']} bytes")
-        print(f"✓ Usable capacity: {capacity['usable_bytes']} bytes")
-        print("✅ TEST PASSED: Capacity calculated successfully!")
+        print(f" Image size: {capacity['image_size']}")
+        print(f" Total capacity: {capacity['total_bytes']} bytes")
+        print(f" Usable capacity: {capacity['usable_bytes']} bytes")
+        print(" TEST PASSED: Capacity calculated successfully!")
         
         # Cleanup
         os.remove(jpeg_path)
         return True
     else:
-        print(f"❌ Error: {capacity['error']}")
+        print(f" Error: {capacity['error']}")
         os.remove(jpeg_path)
         return False
 
@@ -65,7 +65,7 @@ def test_jpeg_plain_encoding():
     print("="*60)
     
     if not JPEGIO_AVAILABLE:
-        print("⚠️  SKIPPED: jpegio not available")
+        print("  SKIPPED: jpegio not available")
         return False
     
     vault = JPEGVault()
@@ -81,14 +81,14 @@ def test_jpeg_plain_encoding():
         decode_result = vault.decode_message(output)
         
         if decode_result['success'] and decode_result['message'] == message:
-            print("✅ TEST PASSED: Message encoded and decoded successfully!")
+            print(" TEST PASSED: Message encoded and decoded successfully!")
             
             # Cleanup
             os.remove(jpeg_path)
             os.remove(output)
             return True
         else:
-            print(f"❌ TEST FAILED: Decoding failed or message mismatch")
+            print(f" TEST FAILED: Decoding failed or message mismatch")
             print(f"Expected: {message}")
             print(f"Got: {decode_result.get('message', 'ERROR')}")
             os.remove(jpeg_path)
@@ -96,7 +96,7 @@ def test_jpeg_plain_encoding():
                 os.remove(output)
             return False
     else:
-        print(f"❌ TEST FAILED: Encoding failed - {result['error']}")
+        print(f" TEST FAILED: Encoding failed - {result['error']}")
         os.remove(jpeg_path)
         return False
 
@@ -108,12 +108,12 @@ def test_jpeg_encrypted_encoding():
     print("="*60)
     
     if not JPEGIO_AVAILABLE:
-        print("⚠️  SKIPPED: jpegio not available")
+        print("  SKIPPED: jpegio not available")
         return False
     
     vault = JPEGVault()
     jpeg_path = create_test_jpeg(quality=95)
-    message = "Secret JPEG data! 🔐"
+    message = "Secret JPEG data! "
     password = "TestPass123"
     output = "test_encoded_encrypted.jpg"
     
@@ -125,20 +125,20 @@ def test_jpeg_encrypted_encoding():
         decode_result = vault.decode_message(output, password=password)
         
         if decode_result['success'] and decode_result['message'] == message:
-            print("✅ TEST PASSED: Encrypted JPEG message decoded successfully!")
+            print(" TEST PASSED: Encrypted JPEG message decoded successfully!")
             
             # Cleanup
             os.remove(jpeg_path)
             os.remove(output)
             return True
         else:
-            print(f"❌ TEST FAILED: Decryption failed")
+            print(f" TEST FAILED: Decryption failed")
             os.remove(jpeg_path)
             if os.path.exists(output):
                 os.remove(output)
             return False
     else:
-        print(f"❌ TEST FAILED: Encoding failed - {result['error']}")
+        print(f" TEST FAILED: Encoding failed - {result['error']}")
         os.remove(jpeg_path)
         return False
 
@@ -150,7 +150,7 @@ def test_jpeg_wrong_password():
     print("="*60)
     
     if not JPEGIO_AVAILABLE:
-        print("⚠️  SKIPPED: jpegio not available")
+        print("  SKIPPED: jpegio not available")
         return False
     
     vault = JPEGVault()
@@ -168,14 +168,14 @@ def test_jpeg_wrong_password():
     decode_result = vault.decode_message(output, password=wrong_password)
     
     if not decode_result['success']:
-        print("✅ TEST PASSED: Wrong password correctly rejected!")
+        print(" TEST PASSED: Wrong password correctly rejected!")
         
         # Cleanup
         os.remove(jpeg_path)
         os.remove(output)
         return True
     else:
-        print("❌ TEST FAILED: Wrong password was accepted!")
+        print(" TEST FAILED: Wrong password was accepted!")
         os.remove(jpeg_path)
         os.remove(output)
         return False
@@ -188,7 +188,7 @@ def test_jpeg_capacity_limit():
     print("="*60)
     
     if not JPEGIO_AVAILABLE:
-        print("⚠️  SKIPPED: jpegio not available")
+        print("  SKIPPED: jpegio not available")
         return False
     
     vault = JPEGVault()
@@ -198,7 +198,7 @@ def test_jpeg_capacity_limit():
     cap = vault.get_capacity(jpeg_path)
     
     if 'error' in cap:
-        print(f"❌ Error getting capacity: {cap['error']}")
+        print(f" Error getting capacity: {cap['error']}")
         os.remove(jpeg_path)
         return False
     
@@ -212,13 +212,13 @@ def test_jpeg_capacity_limit():
     result = vault.encode_message(jpeg_path, huge_message, output)
     
     if not result['success'] and 'too large' in result['error'].lower():
-        print("✅ TEST PASSED: Capacity limit correctly detected!")
+        print(" TEST PASSED: Capacity limit correctly detected!")
         
         # Cleanup
         os.remove(jpeg_path)
         return True
     else:
-        print("❌ TEST FAILED: Capacity limit not detected!")
+        print(" TEST FAILED: Capacity limit not detected!")
         os.remove(jpeg_path)
         if os.path.exists(output):
             os.remove(output)
@@ -226,12 +226,10 @@ def test_jpeg_capacity_limit():
 
 
 if __name__ == "__main__":
-    print("\n" + "⭐"*30)
     print("JPEGVault - JPEG Steganography Tests")
-    print("⭐"*30)
     
     if not JPEGIO_AVAILABLE:
-        print("\n❌ jpegio library not installed!")
+        print("\n jpegio library not installed!")
         print("Install with: pip install jpegio")
         print("\nNote: jpegio requires libjpeg development headers")
         print("Ubuntu/Debian: sudo apt-get install libjpeg-dev")
@@ -256,16 +254,16 @@ if __name__ == "__main__":
             else:
                 failed += 1
         except Exception as e:
-            print(f"\n❌ TEST ERROR: {e}")
+            print(f"\n TEST ERROR: {e}")
             import traceback
             traceback.print_exc()
             failed += 1
     
     print("\n" + "="*60)
-    print(f"🎉 TEST SUMMARY: {passed} passed, {failed} failed")
+    print(f" TEST SUMMARY: {passed} passed, {failed} failed")
     print("="*60)
     
     if failed == 0:
-        print("✅ All tests passed!")
+        print(" All tests passed!")
     else:
-        print(f"⚠️  {failed} test(s) failed")
+        print(f"  {failed} test(s) failed")

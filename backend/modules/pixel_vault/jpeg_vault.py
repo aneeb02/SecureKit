@@ -194,7 +194,7 @@ class JPEGVault:
             
             if password:
                 data = self._encrypt(data, password)
-                print("🔐 Message encrypted with AES-256")
+                print("Message encrypted with AES-256")
             
             # Add metadata and delimiter
             metadata = self._create_metadata(encrypted=bool(password))
@@ -209,8 +209,8 @@ class JPEGVault:
             capacity_bits = len(embeddable_coeffs)
             capacity_bytes = capacity_bits // 8
             
-            print(f"📊 JPEG Capacity: {capacity_bytes} bytes ({capacity_bits} bits)")
-            print(f"📊 Message size: {len(full_data)} bytes ({len(binary)} bits)")
+            print(f"JPEG Capacity is: {capacity_bytes} bytes ({capacity_bits} bits)")
+            print(f"Message size is: {len(full_data)} bytes ({len(binary)} bits)")
             
             if len(binary) > capacity_bits:
                 return {
@@ -225,9 +225,9 @@ class JPEGVault:
             jpeg_obj.coef_arrays[0] = dct_y
             jio.write(jpeg_obj, output_path)
             
-            print(f"✓ Message successfully encoded in JPEG!")
-            print(f"✓ Output: {output_path}")
-            print(f"✓ Capacity used: {len(binary)/capacity_bits*100:.1f}%")
+            print(f" Message successfully encoded in JPEG!")
+            print(f" Output: {output_path}")
+            print(f" Capacity used: {len(binary)/capacity_bits*100:.1f}%")
             
             return {
                 'success': True,
@@ -290,14 +290,14 @@ class JPEGVault:
                 
                 if is_encrypted:
                     if password is None:
-                        print("❌ Error: Message is encrypted. Password required!")
+                        print("Error: Message is encrypted. Password required!")
                         return {'success': False, 'error': 'Password required'}
                     
                     try:
                         data = self._decrypt(data, password)
-                        print("🔓 Message decrypted successfully")
+                        print("Message decrypted successfully")
                     except Exception as e:
-                        print("❌ Decryption failed: Wrong password or corrupted data")
+                        print("Decryption failed: Wrong password or corrupted data")
                         return {'success': False, 'error': 'Decryption failed'}
                 
                 message = data.decode('utf-8')
@@ -305,8 +305,8 @@ class JPEGVault:
                 # No metadata - treat as raw message
                 message = message_bytes.decode('utf-8', errors='ignore')
             
-            print(f"✓ Message decoded from JPEG!")
-            print(f"✓ Length: {len(message)} characters")
+            print(f" Message decoded from JPEG!")
+            print(f" Length: {len(message)} characters")
             
             return {
                 'success': True,
@@ -356,7 +356,7 @@ def main():
     
     print("=" * 60)
     print("     JPEGVault - JPEG Steganography Tool")
-    print("     🔐 DCT Coefficient Modification")
+    print("     DCT Coefficient Modification")
     print("=" * 60)
     print()
     
@@ -397,7 +397,7 @@ def main():
             
             result = vault.encode_message(jpeg_path, message, output, password)
             if not result['success']:
-                print(f"❌ Error: {result['error']}")
+                print(f"Error: {result['error']}")
         
         elif choice == '2':
             print("\n--- Decode Message ---")
@@ -417,7 +417,7 @@ def main():
                 print(result['message'])
                 print("=" * 60)
             else:
-                print(f"❌ Error: {result['error']}")
+                print(f"Error: {result['error']}")
         
         elif choice == '3':
             print("\n--- Check Capacity ---")
@@ -425,7 +425,7 @@ def main():
             
             cap = vault.get_capacity(jpeg_path)
             if 'error' not in cap:
-                print(f"\n📊 JPEG Analysis:")
+                print(f"\n JPEG Analysis:")
                 print(f"  Image size: {cap['image_size']}")
                 print(f"  Total capacity: {cap['total_bytes']} bytes")
                 print(f"  Usable capacity: {cap['usable_bytes']} bytes")
@@ -434,7 +434,7 @@ def main():
                 print(f"Error: {cap['error']}")
         
         elif choice == '4':
-            print("\nExiting JPEGVault. Stay secure! 🔒")
+            print("\nExiting JPEGVault. Stay secure! ")
             break
         
         else:

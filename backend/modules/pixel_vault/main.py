@@ -75,10 +75,10 @@ class PixelVault:
             encoded_img = Image.fromarray(encoded_array.astype('uint8'))
             encoded_img.save(output_path, 'PNG')  # Use PNG to avoid lossy compression
             
-            print(f"✓ Message successfully encoded!")
-            print(f"✓ Encoded image saved to: {output_path}")
-            print(f"✓ Message length: {len(message)} characters")
-            print(f"✓ Bits used: {len(binary_message)} / {max_bytes}")
+            print(f" Message successfully encoded!")
+            print(f" Encoded image saved to: {output_path}")
+            print(f" Message length: {len(message)} characters")
+            print(f" Bits used: {len(binary_message)} / {max_bytes}")
             
             return True
             
@@ -125,8 +125,8 @@ class PixelVault:
                     if message.endswith(self.delimiter):
                         # Remove delimiter and return message
                         message = message[:-len(self.delimiter)]
-                        print(f"✓ Message successfully decoded!")
-                        print(f"✓ Message length: {len(message)} characters")
+                        print(f" Message successfully decoded!")
+                        print(f" Message length: {len(message)} characters")
                         return message
             
             print("Warning: No valid message found or delimiter missing")
@@ -224,8 +224,8 @@ def main():
             
             capacity = vault.get_image_capacity(image_path)
             if capacity > 0:
-                print(f"\n✓ This image can hide up to {capacity} characters")
-                print(f"✓ Approximately {capacity // 100} average sentences")
+                print(f"\n This image can hide up to {capacity} characters")
+                print(f" Approximately {capacity // 100} average sentences")
             
         elif choice == '4':
             print("\nExiting PixelVault. Stay secure! 🔒")

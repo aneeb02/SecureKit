@@ -42,7 +42,7 @@ def demo_basic_usage():
     
     # Encode a message
     print("\n2. Encoding secret message...")
-    secret_message = "This is a secret message hidden in the image! 🔐"
+    secret_message = "This is a secret message hidden in the image! "
     encoded_img = "encoded_image.png"
     
     success = vault.encode_message(sample_img, secret_message, encoded_img)
