@@ -11,7 +11,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Register routers with prefixes
 app.include_router(qr_router, prefix="/qrshield", tags=["QR Shield"])
 app.include_router(phishing_router, prefix="/phishywishy", tags=["Phishy Wishy"])
 app.include_router(pixel_router, prefix="/pixelvault", tags=["Pixel Vault"])
